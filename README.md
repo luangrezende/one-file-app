@@ -53,3 +53,11 @@ one-file-app/
 - Node.js (http, fs, path, url)
 - HTML5 + CSS3 + JavaScript
 - JSON for persistence
+
+## Deploy
+
+### Railway (Recommended)
+1. Push your code to GitHub
+2. Go to [railway.app](https://railway.app)
+3. Connect your GitHub repo
+4. Deploy automatically!

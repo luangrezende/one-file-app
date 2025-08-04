@@ -1,0 +1,16 @@
+{
+  "name": "one-file-app",
+  "version": "1.0.0",
+  "description": "A complete user management application in a single JavaScript file",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "dev": "node app.js"
+  },
+  "keywords": ["nodejs", "javascript", "single-file", "web-app"],
+  "author": "luangrezende",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
