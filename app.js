@@ -13,12 +13,24 @@ function initDB() {
 }
 
 function getUsers() {
-    const data = fs.readFileSync(DB_FILE, 'utf8');
-    return JSON.parse(data);
+    try {
+        if (!fs.existsSync(DB_FILE)) {
+            return [];
+        }
+        const data = fs.readFileSync(DB_FILE, 'utf8');
+        return JSON.parse(data);
+    } catch (error) {
+        console.error('Error reading users:', error);
+        return [];
+    }
 }
 
 function saveUsers(users) {
-    fs.writeFileSync(DB_FILE, JSON.stringify(users, null, 2));
+    try {
+        fs.writeFileSync(DB_FILE, JSON.stringify(users, null, 2));
+    } catch (error) {
+        console.error('Error saving users:', error);
+    }
 }
 
 function parseBody(req) {
@@ -44,7 +56,7 @@ const server = http.createServer(async (req, res) => {
     const pathname = parsedUrl.pathname;
 
     res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
     if (method === 'OPTIONS') {
@@ -91,6 +103,37 @@ const server = http.createServer(async (req, res) => {
         return;
     }
 
+    if (pathname.startsWith('/api/users/') && method === 'DELETE') {
+        try {
+            const userId = pathname.split('/api/users/')[1];
+            
+            if (!userId) {
+                res.writeHead(400, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ error: 'User ID is required' }));
+                return;
+            }
+            
+            const users = getUsers();
+            const userIndex = users.findIndex(user => user.id === parseInt(userId));
+            
+            if (userIndex === -1) {
+                res.writeHead(404, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ error: 'User not found' }));
+                return;
+            }
+            
+            users.splice(userIndex, 1);
+            saveUsers(users);
+            
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ message: 'User deleted successfully' }));
+        } catch (error) {
+            res.writeHead(500, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: 'Internal server error' }));
+        }
+        return;
+    }
+
     if (pathname === '/' && method === 'GET') {
         res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
         res.end(`
@@ -108,7 +151,9 @@ const server = http.createServer(async (req, res) => {
                     button { background: #007bff; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; }
                     button:hover { background: #0056b3; }
                     .user-list { margin-top: 30px; }
-                    .user-item { background: #f8f9fa; padding: 15px; margin: 10px 0; border-radius: 4px; border-left: 4px solid #007bff; }
+                    .user-item { background: #f8f9fa; padding: 15px; margin: 10px 0; border-radius: 4px; border-left: 4px solid #007bff; position: relative; }
+                    .delete-btn { position: absolute; top: 10px; right: 10px; background: #dc3545; color: white; border: none; border-radius: 3px; padding: 5px 10px; cursor: pointer; font-size: 12px; }
+                    .delete-btn:hover { background: #c82333; }
                 </style>
             </head>
             <body>
@@ -165,6 +210,28 @@ const server = http.createServer(async (req, res) => {
                         }
                     });
 
+                    async function deleteUser(userId) {
+                        if (!confirm('Are you sure you want to delete this user?')) {
+                            return;
+                        }
+
+                        try {
+                            const response = await fetch('/api/users/' + userId, {
+                                method: 'DELETE'
+                            });
+
+                            if (response.ok) {
+                                loadUsers();
+                                alert('User deleted!');
+                            } else {
+                                const error = await response.json();
+                                alert('Error: ' + error.error);
+                            }
+                        } catch (error) {
+                            alert('Error deleting user: ' + error.message);
+                        }
+                    }
+
                     async function loadUsers() {
                         try {
                             const response = await fetch('/api/users');
@@ -182,6 +249,7 @@ const server = http.createServer(async (req, res) => {
                                 const userDiv = document.createElement('div');
                                 userDiv.className = 'user-item';
                                 userDiv.innerHTML = 
+                                    '<button class="delete-btn" onclick="deleteUser(' + user.id + ')">Delete</button>' +
                                     '<strong>' + user.name + '</strong><br>' +
                                     'Email: ' + user.email + '<br>' +
                                     '<small>Added: ' + new Date(user.createdAt).toLocaleString('en-US') + '</small>';
@@ -204,6 +272,6 @@ const server = http.createServer(async (req, res) => {
 
 initDB();
 
-server.listen(PORT, () => {
-    console.log(`Server running at http://localhost:${PORT}`);
+server.listen(PORT, HOST, () => {
+    console.log(`Server running at http://${HOST}:${PORT}`);
 });

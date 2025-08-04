@@ -37,7 +37,8 @@ one-file-app/
 ## What it does
 
 - Add users
-- List users  
+- List users
+- Delete users
 - Data validation
 - Responsive interface
 - Data persistence
@@ -47,6 +48,7 @@ one-file-app/
 - `GET /` - Web interface
 - `GET /api/users` - List all users
 - `POST /api/users` - Add a new user
+- `DELETE /api/users/:id` - Delete a user
 
 ## Tech Stack
 
