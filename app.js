@@ -272,6 +272,6 @@ const server = http.createServer(async (req, res) => {
 
 initDB();
 
-server.listen(PORT, HOST, () => {
-    console.log(`Server running at http://${HOST}:${PORT}`);
+server.listen(PORT, () => {
+    console.log(`Server running at http://localhost:${PORT}`);
 });

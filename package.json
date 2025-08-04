@@ -7,7 +7,7 @@
     "start": "node app.js",
     "dev": "node app.js"
   },
-  "keywords": ["nodejs", "javascript", "single-file", "web-app"],
+  "keywords": ["nodejs", "javascript", "single-file", "web-app", "user-management"],
   "author": "luangrezende",
   "license": "MIT",
   "engines": {
